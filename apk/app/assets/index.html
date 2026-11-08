@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0A0A0F" />
+<title>AdClone — AI Ad Cloning Engine</title>
+<style>
+  :root{
+    --bg:#0A0A0F; --card:#14141D; --card2:#1B1B27; --line:#2A2A3A;
+    --text:#EDEDF4; --muted:#9A9AB0; --primary:#6C4CF1; --primary2:#8B6DFF;
+    --accent:#22D3A7; --gold:#FFD166; --danger:#FF5C7A;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    min-height:100%;-webkit-font-smoothing:antialiased}
+  body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  .wrap{max-width:640px;margin:0 auto;padding:18px 16px 40px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--primary),var(--primary2));
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#fff;
+    box-shadow:0 6px 20px rgba(108,76,241,.45)}
+  h1{font-size:21px;margin:0;letter-spacing:-.4px}
+  .sub{color:var(--muted);font-size:12.5px;margin:2px 0 0}
+  .steps{display:flex;gap:5px;margin:18px 0 20px}
+  .dot{flex:1;height:5px;border-radius:4px;background:var(--line);transition:.35s}
+  .dot.on{background:linear-gradient(90deg,var(--primary),var(--primary2))}
+  .dot.done{background:var(--accent)}
+  .step-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin:-12px 0 18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px}
+  .card h2{font-size:16px;margin:0 0 6px}
+  .card p.hint{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 14px}
+  label{display:block;font-size:12.5px;font-weight:600;margin-bottom:8px;color:var(--text)}
+  input[type=url],input[type=text],textarea{width:100%;background:#0E0E15;border:1px solid var(--line);
+    color:var(--text);border-radius:12px;padding:14px;font-size:15px;outline:none;transition:.2s}
+  input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(108,76,241,.22)}
+  textarea{min-height:76px;resize:vertical;font-family:inherit}
+  .btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-size:15.5px;font-weight:700;
+    color:#fff;background:linear-gradient(135deg,var(--primary),var(--primary2));margin-top:14px;
+    box-shadow:0 8px 24px rgba(108,76,241,.35);cursor:pointer;transition:transform .12s,opacity .2s}
+  .btn:active{transform:scale(.98)}
+  .btn:disabled{opacity:.5}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);box-shadow:none}
+  .btn.accent{background:linear-gradient(135deg,#12b886,var(--accent));box-shadow:0 8px 24px rgba(34,211,167,.3)}
+  .row{display:flex;gap:10px}
+  .row .btn{flex:1}
+  .kv{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+  .kv .k{font-size:11px;letter-spacing:.7px;text-transform:uppercase;color:var(--primary2);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+  .kv .v{font-size:14px;line-height:1.6;color:var(--text)}
+  .kv .v.muted{color:var(--muted);font-size:13px}
+  .timeline{margin-top:10px}
+  .cut{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line)}
+  .cut:last-child{border-bottom:none}
+  .cut .ts{font-variant-numeric:tabular-nums;color:var(--gold);font-size:12px;font-weight:700;min-width:78px}
+  .cut .desc{font-size:13px;color:var(--muted)}
+  .clip{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px;margin-bottom:10px;
+    display:flex;gap:11px;align-items:flex-start}
+  .clip .badge{font-size:10.5px;font-weight:800;padding:4px 9px;border-radius:8px;white-space:nowrap;
+    background:rgba(108,76,241,.18);color:var(--primary2);border:1px solid rgba(108,76,241,.35)}
+  .clip .badge.b2{background:rgba(34,211,167,.15);color:var(--accent);border-color:rgba(34,211,167,.35)}
+  .clip .txt{font-size:13px;line-height:1.55;color:var(--text)}
+  .progress{height:9px;background:var(--line);border-radius:6px;overflow:hidden;margin:14px 0 8px}
+  .progress > i{display:block;height:100%;width:0%;border-radius:6px;
+    background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .25s}
+  .status{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px}
+  canvas{width:100%;border-radius:14px;display:block;background:#000;border:1px solid var(--line)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+    background:#22222F;border:1px solid var(--line);color:var(--text);padding:12px 18px;border-radius:12px;
+    font-size:13px;opacity:0;pointer-events:none;transition:.3s;z-index:99;max-width:88%}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .hidden{display:none!important}
+  .badgeRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .pill{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:5px 11px}
+  .err{color:var(--danger);font-size:12.5px;margin-top:8px;min-height:16px}
+  .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;
+    border-radius:50%;display:inline-block;vertical-align:-3px;margin-right:8px;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  a.link{color:var(--primary2);text-decoration:none}
+  .footer{text-align:center;color:#4a4a5e;font-size:11px;margin-top:26px}
+  .settings{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:12px 14px;margin-bottom:18px;font-size:12.5px;color:var(--muted)}
+  .settings input{flex:1;padding:9px 11px;font-size:12.5px;border-radius:9px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">A</div>
+    <div>
+      <h1>AdClone</h1>
+      <p class="sub">AI Ad Cloning Engine · Shopify ad remixer</p>
+    </div>
+  </header>
+
+  <div class="steps" id="steps">
+    <div class="dot on"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <div class="step-label"><span id="stepName">Step 1 · Reference</span><span id="stepPct">20%</span></div>
+
+  <!-- STEP 1 -->
+  <section id="s1">
+    <div class="card">
+      <h2>Clone a winning ad</h2>
+      <p class="hint">Paste a reference video ad (TikTok, Instagram Reels, YouTube Shorts, or a competitor product page). The engine reverse-engineers the script, pacing and visual style, then re-renders it for your product.</p>
+      <label>Reference video URL</label>
+      <input id="refUrl" type="url" placeholder="https://www.tiktok.com/@brand/video/123456789" />
+      <label style="margin-top:16px">Your product</label>
+      <input id="product" type="text" placeholder="e.g. Hydra Glow Vitamin-C Serum" />
+      <label style="margin-top:16px">Target audience</label>
+      <input id="audience" type="text" placeholder="e.g. women 25–40, skincare-conscious" />
+      <div class="err" id="err1"></div>
+      <button class="btn" id="btnAnalyze">Analyze ad script &amp; style</button>
+    </div>
+    <div class="settings">
+      <span>⚙️</span>
+      <input id="server" type="text" placeholder="Backend URL (optional) — blank = offline demo" />
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section id="s2" class="hidden">
+    <div class="card">
+      <h2>AI breakdown</h2>
+      <p class="hint">Second-by-second reverse engineering of the reference ad.</p>
+      <div class="kv"><div class="k">🪝 The Hook · first 3s</div><div class="v" id="vHook"></div></div>
+      <div class="kv"><div class="k">⏱️ Pacing timeline</div><div class="v" id="vPacing"></div></div>
+      <div class="kv"><div class="k">🎯 Core offer / value prop</div><div class="v" id="vOffer"></div></div>
+      <div class="kv"><div class="k">🎨 Visual style</div><div class="v muted" id="vStyle"></div></div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="btnBack1">← Back</button>
+      <button class="btn" id="btnToAssets">Generate assets →</button>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section id="s3" class="hidden">
+    <div class="card">
+      <h2>Asset generation &amp; swapping</h2>
+      <p class="hint">Hooks, CTAs and B-roll prompts rewritten for your product and audience.</p>
+      <div id="clips"></div>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="btnBack2">← Back</button>
+      <button class="btn" id="btnRender">Render ad variant →</button>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section id="s4" class="hidden">
+    <div class="card">
+      <h2>Rendering</h2>
+      <p class="hint">Compositing kinetic typography, captions and spliced AI B-roll at 1080×1920.</p>
+      <canvas id="canvas" width="540" height="960"></canvas>
+      <div class="progress"><i id="bar"></i></div>
+      <div class="status" id="renderStatus">Preparing composition…</div>
+    </div>
+    <button class="btn ghost" id="btnBack3">← Back</button>
+  </section>
+
+  <!-- STEP 5 -->
+  <section id="s5" class="hidden">
+    <div class="card">
+      <h2>✓ Ad variant ready</h2>
+      <p class="hint">Your cloned ad is rendered and optimized for TikTok / Reels / Shorts.</p>
+      <canvas id="poster" width="540" height="960"></canvas>
+      <div class="badgeRow">
+        <span class="pill">1080×1920</span><span class="pill">30fps</span>
+        <span class="pill">H.264 / WebM</span><span class="pill">9:16 vertical</span>
+      </div>
+      <div class="err" id="downloadNote" style="color:var(--muted)"></div>
+      <button class="btn accent" id="btnDownloadPoster">Download poster (PNG)</button>
+      <button class="btn ghost" id="btnDownloadVideo" style="margin-top:10px">Download video (WebM)</button>
+      <button class="btn ghost" id="btnRestart" style="margin-top:10px">Start a new clone</button>
+    </div>
+  </section>
+
+  <div class="footer">AdClone · Programmatic Ad Cloning Engine · runs offline</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var state = { step:1, url:"", product:"", audience:"", analysis:null, clips:[], videoBlob:null, posterData:null };
+  var $ = function(id){ return document.getElementById(id); };
+  function toast(msg){ var t=$("toast"); t.textContent=msg; t.classList.add("show");
+    clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove("show");},2400); }
+  function setStep(n){
+    state.step=n;
+    for(var i=1;i<=5;i++){ $("s"+i).classList.toggle("hidden", i!==n); }
+    var dots=$("steps").children;
+    for(var d=0; d<dots.length; d++){
+      dots[d].className="dot"+(d+1<n?" done":(d+1===n?" on":""));
+    }
+    var names=["Step 1 · Reference","Step 2 · AI breakdown","Step 3 · Assets","Step 4 · Render","Step 5 · Ready"];
+    $("stepName").textContent=names[n-1];
+    $("stepPct").textContent=(n*20)+"%";
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  // ---- Demo analysis generator (deterministic-ish, seeded by URL) ----
+  function seedFrom(str){ var h=2166136261; for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);} return Math.abs(h); }
+  function pick(arr,seed){ return arr[seed%arr.length]; }
+
+  function demoAnalysis(url, product, audience){
+    var seed = seedFrom((url||"")+(product||""));
+    var hooks=[
+      "POV: you finally found the "+(product||"product")+" everyone keeps talking about — and it actually works.",
+      "Stop scrolling. This is why your current routine isn't working (and the 3-second fix).",
+      "I tried 12 "+(product||"options")+" so you don't have to. This one changed everything.",
+      "Nobody talks about this, but it's the reason your results stalled."
+    ];
+    var offers=[
+      (product||"Your product")+" delivers visible results in days, not months — backed by a risk-free guarantee for "+(audience||"customers")+".",
+      "The 2-step routine that replaces 6 products. Save time, save money, see results.",
+      "Clinically-inspired formula + a launch bundle that sells out every drop."
+    ];
+    var styles=[
+      "Fast-cut UGC, handheld authenticity, bold kinetic captions, warm daylight, trending audio with beat-synced cuts.",
+      "Cinematic close-ups, shallow depth of field, minimal typography, soft piano bed, premium/aspirational tone.",
+      "High-energy montage, zooms on product texture, bright studio lighting, punchy SFX, meme-style overlays."
+    ];
+    var timelines=[
+      [["0:00–0:03","Hook: face to camera + bold on-screen text"],["0:03–0:08","Problem agitation: relatable pain point"],["0:08–0:18","Product reveal + first benefit demo"],["0:18–0:30","Proof: before/after + testimonial"],["0:30–0:42","Offer stack + urgency"],["0:42–0:50","CTA with discount code"]],
+      [["0:00–0:03","Hook: product close-up + question overlay"],["0:03–0:10","Transformation montage"],["0:10–0:22","Feature callouts (3 benefits)"],["0:22–0:34","Social proof carousel"],["0:34–0:45","Bundle offer + scarcity"],["0:45–0:50","Final CTA"]],
+      [["0:00–0:02","Hook: pattern interrupt / visual jolt"],["0:02–0:10",""+"Myth vs reality split screen"],["0:10–0:24","Step-by-step usage demo"],["0:24–0:36","Results + reviews"],["0:36–0:46","Offer + bonus"],["0:46–0:50","CTA: tap to shop"]]
+    ];
+    var tIdx=seed%timelines.length;
+    return {
+      hook: pick(hooks,seed),
+      coreOffer: pick(offers,seed+3),
+      visualStyle: pick(styles,seed+7),
+      pacing: timelines[tIdx],
+      cta: pick(["Shop now — 20% off today only","Tap to get yours before it sells out","Claim your bundle + free shipping"],seed+2)
+    };
+  }
+
+  function renderAnalysisUI(a){
+    $("vHook").textContent=a.hook;
+    $("vOffer").textContent=a.coreOffer;
+    $("vStyle").textContent=a.visualStyle;
+    var tl=document.createElement("div"); tl.className="timeline";
+    a.pacing.forEach(function(c){
+      var row=document.createElement("div"); row.className="cut";
+      row.innerHTML='<div class="ts">'+esc(c[0])+'</div><div class="desc">'+esc(c[1])+'</div>';
+      tl.appendChild(row);
+    });
+    var vp=$("vPacing"); vp.innerHTML=""; vp.appendChild(tl);
+  }
+
+  function demoClips(a, product){
+    return [
+      {type:"Hook rewrite", kind:"b1", text:a.hook},
+      {type:"CTA rewrite", kind:"b1", text:a.cta},
+      {type:"B-roll · cut 2", kind:"b2", text:"Problem scene — "+(product||"product")+" in real-world context, relatable UGC framing, natural light."},
+      {type:"B-roll · cut 4", kind:"b2", text:"Social proof — authentic testimonial shot, before/after reveal, shallow depth of field."},
+      {type:"B-roll · cut 5", kind:"b2", text:"Offer stack — product hero shot on branded backdrop, subtle zoom, kinetic price typography."}
+    ];
+  }
+
+  function renderClipsUI(clips){
+    var host=$("clips"); host.innerHTML="";
+    clips.forEach(function(c){
+      var d=document.createElement("div"); d.className="clip";
+      d.innerHTML='<span class="badge '+c.kind+'">'+esc(c.type)+'</span><span class="txt">'+esc(c.text)+'</span>';
+      host.appendChild(d);
+    });
+  }
+
+  // ---- API call (if server URL present) with graceful fallback ----
+  function analyze(){
+    var url=$("refUrl").value.trim();
+    var product=$("product").value.trim() || "Your product";
+    var audience=$("audience").value.trim() || "your audience";
+    if(!url){ $("err1").textContent="Please paste a reference video URL."; return; }
+    if(!/^https?:\/\//i.test(url)){ $("err1").textContent="Enter a valid http(s) URL."; return; }
+    $("err1").textContent="";
+    var server=$("server").value.trim().replace(/\/$/,"");
+    var btn=$("btnAnalyze"); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Analyzing…';
+
+    function done(a){
+      state.url=url; state.product=product; state.audience=audience; state.analysis=a;
+      renderAnalysisUI(a); setStep(2);
+      btn.disabled=false; btn.textContent="Analyze ad script & style";
+      toast("Analysis complete");
+    }
+    function fail(e){ console.warn(e); btn.disabled=false; btn.textContent="Analyze ad script & style";
+      toast("Backend unreachable — using offline demo"); done(demoAnalysis(url,product,audience)); }
+
+    if(server){
+      var ctrl=new AbortController(); var to=setTimeout(function(){ctrl.abort();},9000);
+      fetch(server+"/api/analyze",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({url:url}) ,signal:ctrl.signal})
+        .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+        .then(function(data){
+          clearTimeout(to);
+          var a=(data&&(data.analysis||data))||null;
+          if(!a||!a.hook) throw new Error("bad payload");
+          var norm={hook:a.hook||"",coreOffer:a.coreOffer||a.offer||"",visualStyle:a.visualStyle||a.style||"",
+            cta:a.cta||"Shop now", pacing:[["0:00–0:03","Hook"],["0:03–0:10","Problem"],["0:10–0:22","Solution"],["0:22–0:34","Proof"],["0:34–0:45","Offer"],["0:45–0:50","CTA"]]};
+          if(Array.isArray(a.pacing)) norm.pacing=a.pacing.map(function(p){ return Array.isArray(p)?p:[p.ts||p.time||"",p.desc||p.label||String(p)]; });
+          done(norm);
+        })
+        .catch(fail);
+    } else {
+      setTimeout(function(){ done(demoAnalysis(url,product,audience)); }, 900);
+    }
+  }
+
+  // ---- Render simulation + real canvas recording ----
+  var raf=null, recording=null, recorder=null, chunks=[];
+  function drawFrame(p, a){
+    var cv=$("canvas"), ctx=cv.getContext("2d");
+    var W=cv.width,H=cv.height;
+    var g=ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,"#12101f"); g.addColorStop(1,"#0a0a0f");
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    // moving gradient blobs
+    var t=p*Math.PI*2;
+    function blob(cx,cy,r,color){
+      var rg=ctx.createRadialGradient(cx,cy,0,cx,cy,r);
+      rg.addColorStop(0,color); rg.addColorStop(1,"rgba(0,0,0,0)");
+      ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
+    }
+    blob(W*0.3+Math.sin(t)*40, H*0.3+Math.cos(t)*30, 220, "rgba(108,76,241,.55)");
+    blob(W*0.75+Math.cos(t)*40, H*0.65+Math.sin(t)*30, 200, "rgba(34,211,167,.35)");
+    // brand
+    ctx.fillStyle="rgba(255,255,255,.85)"; ctx.font="700 20px sans-serif"; ctx.textAlign="left";
+    ctx.fillText((state.product||"AdClone"), 32, 60);
+    // hook text (typewriter)
+    var hook=(a&&a.hook)||"Your AI hook appears here";
+    var shown=hook.substring(0, Math.floor(hook.length*Math.min(1,p*1.6)));
+    ctx.fillStyle="#fff"; ctx.textAlign="center"; ctx.font="800 34px sans-serif";
+    wrapText(ctx, shown, W/2, H*0.42, W-70, 44);
+    // offer
+    if(p>0.45){
+      ctx.fillStyle="#FFD166"; ctx.font="600 20px sans-serif";
+      wrapText(ctx, (a&&a.coreOffer||""), W/2, H*0.62, W-80, 28);
+    }
+    // cta
+    if(p>0.75){
+      ctx.fillStyle="#22D3A7"; ctx.font="800 24px sans-serif";
+      ctx.fillText((a&&a.cta)||"Shop now", W/2, H*0.82);
+    }
+    // caption bar
+    ctx.fillStyle="rgba(0,0,0,.55)"; ctx.fillRect(0,H-70,W,70);
+    ctx.fillStyle="rgba(255,255,255,.8)"; ctx.font="500 15px sans-serif"; ctx.textAlign="center";
+    ctx.fillText("AI captions · auto-synced", W/2, H-28);
+    // progress ring / timecode
+    ctx.textAlign="left"; ctx.fillStyle="rgba(255,255,255,.6)"; ctx.font="600 14px sans-serif";
+    ctx.fillText(fmtTime(p*50)+" / 0:50", 32, H-92);
+  }
+  function wrapText(ctx,text,x,y,maxW,lh){
+    var words=String(text).split(" "); var line=""; var yy=y;
+    for(var n=0;n<words.length;n++){
+      var test=line+words[n]+" ";
+      if(ctx.measureText(test).width>maxW && line){ ctx.fillText(line.trim(),x,yy); line=words[n]+" "; yy+=lh; }
+      else line=test;
+    }
+    ctx.fillText(line.trim(),x,yy);
+  }
+  function fmtTime(s){ var m=Math.floor(s/60); var ss=Math.floor(s%60); return m+":"+(ss<10?"0":"")+ss; }
+
+  function startRender(){
+    setStep(4);
+    var a=state.analysis;
+    // build clips if not built
+    if(!state.clips.length) state.clips=demoClips(a, state.product);
+    var bar=$("bar"), st=$("renderStatus");
+    var phases=["Preparing composition…","Splicing AI B-roll clips…","Laying kinetic typography…","Syncing captions…","Encoding H.264 / WebM…"];
+    // start canvas recording (best-effort)
+    var cv=$("canvas");
+    chunks=[];
+    try{
+      if(cv.captureStream && window.MediaRecorder){
+        var stream=cv.captureStream(30);
+        var mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9") ? "video/webm;codecs=vp9"
+                 : (MediaRecorder.isTypeSupported("video/webm;codecs=vp8") ? "video/webm;codecs=vp8" : "video/webm");
+        recorder=new MediaRecorder(stream,{mimeType:mime, videoBitsPerSecond: 2500000});
+        recorder.ondataavailable=function(e){ if(e.data && e.data.size) chunks.push(e.data); };
+        recorder.onstop=function(){
+          try{ state.videoBlob=new Blob(chunks,{type:"video/webm"}); }catch(_){ state.videoBlob=null; }
+        };
+        recorder.start();
+      }
+    }catch(_){ recorder=null; }
+
+    var start=Date.now(), dur=5200;
+    var phaseIdx=0;
+    function loop(){
+      var p=Math.min(1,(Date.now()-start)/dur);
+      bar.style.width=(p*100)+"%";
+      var idx=Math.min(phases.length-1, Math.floor(p*phases.length));
+      if(idx!==phaseIdx){ phaseIdx=idx; st.textContent=phases[idx]; }
+      drawFrame(p,a);
+      if(p<1){ raf=requestAnimationFrame(loop); }
+      else { finishRender(a); }
+    }
+    loop();
+  }
+
+  function finishRender(a){
+    try{ if(recorder && recorder.state!=="inactive") recorder.stop(); }catch(_){}
+    var cv=$("poster"), ctx=cv.getContext("2d");
+    // draw final poster
+    var src=$("canvas");
+    ctx.drawImage(src,0,0,cv.width,cv.height);
+    try{ state.posterData=cv.toDataURL("image/png"); }catch(_){ state.posterData=null; }
+    setStep(5);
+    toast("Ad variant rendered");
+    if(!state.videoBlob){
+      setTimeout(function(){ if(!state.videoBlob) $("downloadNote").textContent="Live video capture unavailable on this WebView — download the poster (PNG) instead. Video recording is supported in full browsers."; }, 600);
+    }
+  }
+
+  function downloadBlob(blob, name){
+    try{
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a"); a.href=url; a.download=name; document.body.appendChild(a);
+      a.click(); setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); },1500);
+      toast("Saved "+name);
+    }catch(e){ toast("Download blocked by WebView"); }
+  }
+  function downloadDataUrl(dataUrl, name){
+    try{
+      var a=document.createElement("a"); a.href=dataUrl; a.download=name; document.body.appendChild(a);
+      a.click(); setTimeout(function(){a.remove();},1500);
+      toast("Saved "+name);
+    }catch(e){ toast("Download blocked by WebView"); }
+  }
+
+  // ---- wire up ----
+  $("btnAnalyze").addEventListener("click", analyze);
+  $("btnBack1").addEventListener("click", function(){ setStep(1); });
+  $("btnToAssets").addEventListener("click", function(){
+    if(!state.clips.length) state.clips=demoClips(state.analysis, state.product);
+    renderClipsUI(state.clips); setStep(3);
+  });
+  $("btnBack2").addEventListener("click", function(){ setStep(2); });
+  $("btnRender").addEventListener("click", startRender);
+  $("btnBack3").addEventListener("click", function(){ setStep(3); });
+  $("btnDownloadPoster").addEventListener("click", function(){
+    if(state.posterData){ downloadDataUrl(state.posterData, "adclone-poster.png"); }
+    else toast("Poster not ready yet");
+  });
+  $("btnDownloadVideo").addEventListener("click", function(){
+    if(state.videoBlob){ downloadBlob(state.videoBlob, "adclone-variant.webm"); }
+    else toast("Video capture unavailable — use poster instead");
+  });
+  $("btnRestart").addEventListener("click", function(){
+    state.analysis=null; state.clips=[]; state.videoBlob=null; state.posterData=null;
+    $("refUrl").value=""; $("product").value=""; $("audience").value="";
+    $("bar").style.width="0%"; $("renderStatus").textContent="Preparing composition…";
+    $("downloadNote").textContent=""; setStep(1);
+  });
+
+  // draw idle frame on canvas so it isn't blank
+  drawFrame(0, null);
+  setStep(1);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+*.log
+.DS_Store
+.env
+.env.local
+
+# Android build intermediates
+apk/build/
+*.keystore
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
